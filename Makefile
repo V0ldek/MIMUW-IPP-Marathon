@@ -26,7 +26,7 @@ OBJS=$(SRCS:.c=.o)
 all: $(OBJS)
 	$(CC) $^ $(LDFLAGS) -o $(PROG)
 	    
-.c.o:
+%.c: %.o
 	$(CC) $^ $(CFLAGS) -c
     
 clean:

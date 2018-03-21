@@ -1,0 +1,8 @@
+*.files
+*.config
+*.includes
+*.creator
+*.user
+*.o
+marathon
+.depend
