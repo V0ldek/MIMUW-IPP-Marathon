@@ -1,0 +1,38 @@
+marathon 0 2
+
+addMovie 0 1337
+
+marathon 0 2
+
+addMovie 0 1410
+
+marathon 0 2
+
+addUser 0 1
+addUser 1 2
+addMovie 1 1815
+addMovie 2 1683
+addMovie 2 1525
+
+# Filmy użytkownika nr 2 nigdy nie będą podane do 0 przez 1,
+# gdyż jego film jest sporo lepszy. Zatem do 0 dotrze tylko
+# ulubiony film 1 -- 1815.
+
+marathon 0 2
+
+delUser 1
+
+# Teraz nic nie stoi na przeszkodzie, by 2 podzielił się swoimi filmami.
+
+marathon 0 2
+
+delMovie 2 1525
+
+marathon 0 2
+
+addUser 2 1
+
+addMovie 1 2018
+
+marathon 0 3
+

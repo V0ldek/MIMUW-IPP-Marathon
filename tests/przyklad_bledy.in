@@ -1,0 +1,22 @@
+delUser 0
+# ERROR: nie można usunąć użytkownika o identyfikatorze 0.
+addUser 0 -1
+# ERROR: zły identyfikator użytkownika.
+addUser 1 2
+# ERROR: nie ma użytkownika o identyfikatorze 1.
+addUser 0 1
+# OK
+addUser 1 0
+# ERROR: 0 już ma ojca
+delMovie 0 1
+# ERROR: użytkownik 0 nie ma filmu 1 w swoich preferencjach.
+addMovie 0 1
+# OK
+addMovie 0 1
+# ERROR: film już został dodany do preferencji użytkownika.
+delMovie 0 1
+# OK
+delMovie 0 1
+# ERROR: użytkownik 0 nie ma filmu 1 w preferencjach.
+
+# zignorowane
