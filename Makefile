@@ -1,6 +1,6 @@
 
 # Executable name
-PROG=marathon
+PROG=main
 
 # C compiler
 CC=gcc
@@ -13,18 +13,18 @@ LDFLAGS=-Wall -Wextra
 
 SRCDIR=src
 
-# Header files
-HDRS=
-
 # Source files
-SRCS=$(HDRS:.h=.c) $(SRCDIR)/main.c
+SRCS=$(SRCDIR)/list.c $(SRCDIR)/tree.c $(SRCDIR)/movie_list.c \
+$(SRCDIR)/marathon_tree.c $(SRCDIR)/main.c
 
 # Required objects
 OBJS=$(SRCS:.c=.o)
 
 # Creates the $(PROG) executable
-all: $(OBJS)
-	$(CC) $^ $(LDFLAGS) -o $(PROG)
+all: $(PROG)
+
+$(PROG): $(OBJS)
+	$(CC) $^ $(LDFLAGS) -o $@
 	    
 %.c: %.o
 	$(CC) $^ $(CFLAGS) -c
