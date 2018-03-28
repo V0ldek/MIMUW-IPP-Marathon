@@ -7,55 +7,48 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "tree.h"
-#include "macros.h"
+#include "utils.h"
 
-// Creates a new tree with passed parameters.
-tree *tree_make(void *value, list_t *children) {
+// Creates a new tree with passed value and empty children list.
+tree *tree_make(void *value) {
 
     tree *newTree = malloc(sizeof(tree));
 
-    if(newTree == NULL) {
-#ifdef DEBUG
-        serr("Out of memory in tree_make");
-#endif
-        exit(1);
-    }
+    NNULL(newTree, "tree_make.\n");
 
     newTree->value = value;
-    newTree->children = children;
-    newTree->bIsAlive = true;
+    newTree->children = dlist_make_list();
 
     return newTree;
 }
 
 // Adds the tree as a child of parent.
+// Adds at the end of the children list.
 void tree_add(tree *parent, tree *otherRoot) {
 
-    list_push_front(parent->children, list_make_ptr(otherRoot));
+    NNULL(parent, "parent/tree_add");
+    NNULL(otherRoot, "otherRoot/tree_add");
+
+    dlist_push_back(parent->children, dlist_make_elem_ptr(otherRoot));
 }
-
-// Marks the node as dead. Does not free any resources.
-void tree_mark_dead(tree *node) {
-
-    node->bIsAlive = false;
-}
-
 
 // Destroys the entire tree recursively and NULLs the root pointer.
 // Destroying a tree element does not free resources from the contained
 // void* elem!
 void tree_destroy(tree **root) {
 
-    node_t *iter = (*root)->children->head;
+    dlist_t *childrenList = (*root)->children;
+    dnode_t *iter = dlist_get_front(childrenList);
 
-    while(iter != NULL) {
+    while(dlist_is_valid(iter)) {
 
-        tree_destroy(iter->elem.ptr);
-        iter = iter->next;
+        tree_destroy((tree **) &iter->elem->ptr);
+
+        dlist_next(iter);
     }
 
-    list_destroy(&(*root)->children);
-    free(*root);
+    dlist_destroy(&(*root)->children);
 
+    free(*root);
     *root = NULL;
 }

@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include "macros.h"
+#include "utils.h"
 #include "tree.h"
 #include "marathon_tree.h"
 
@@ -16,35 +16,41 @@
 #define CTRL_STR_ADDMOVIE "addMovie"
 #define CTRL_STR_DELMOVIE "delMovie"
 #define CTRL_STR_MARATHON "marathon"
+#define ERROR_MSG "ERROR\n"
+#define OK_MSG "OK\n"
+#define EMPTY_LIST_MSG "NONE\n"
+#define INITIAL_BUFFER_SIZE 32
 
 size_t bufferSize;
 char *buffer;
 tree *root;
 
-void print_list(list_t *list) {
+void print_list(dlist_t *list) {
 
-    if(list == NULL || list->head == NULL) {
+    NNULL(list, "print_list");
 
-        printf("NONE\n");
+    dnode_t *iter = dlist_get_front(list);
+
+    if(iter == NULL) {
+
+        printf(EMPTY_LIST_MSG);
 
         return;
     }
 
-    node_t *iter = list->head;
+    while(dlist_next(iter) != NULL) {
 
-    while(iter->next != NULL) {
+        printf("%d ", iter->elem->num);
 
-        printf("%d ", iter->elem.val);
-
-        iter = iter->next;
+        iter = dlist_next(iter);
     }
 
-    printf("%d\n", iter->elem.val);
+    printf("%d\n", iter->elem->num);
 }
 
 void initialize() {
 
-    bufferSize = 32;
+    bufferSize = INITIAL_BUFFER_SIZE;
     buffer = malloc(bufferSize * sizeof(char));
 
     root = marathon_tree_initialize();
@@ -75,16 +81,15 @@ bool process_del_movie(int userID, int movieRating) {
 bool process_marathon(int userID, int k) {
 
     if(userID < 0 || k < 0) {
-
         return false;
     }
 
-    list_t *marathonResult = marathon_tree_get_marathon_list(userID, k);
+    dlist_t *marathonResult = marathon_tree_get_marathon_list(userID, k);
 
     if(marathonResult != NULL) {
         print_list(marathonResult);
     } else {
-        printf("NONE\n");
+        return false;
     }
 
     return true;
@@ -117,82 +122,63 @@ void process_line(ssize_t characters) {
     // If readLength != characters, there were multiple whitespaces
     if(remaining != NULL || readLength != characters) {
 
-        serr("ERROR\n");
+        serr(ERROR_MSG);
 
         return;
     }
 
     int arg1 = -1, arg2 = -1;
 
-    if(arg1str != NULL && *arg1str >= '1' && *arg1str <= '9') {
+    if(arg1str != NULL && *arg1str >= '0' && *arg1str <= '9') {
         arg1 = (int) strtol(arg1str, NULL, 10);
     }
 
-    if(arg2str != NULL && *arg2str >= '1' && *arg2str <= '9') {
+    if(arg2str != NULL && *arg2str >= '0' && *arg2str <= '9') {
         arg2 = (int) strtol(arg2str, NULL, 10);
     }
 
     if(errno != 0) {
 
-        serr("ERROR\n");
-        errno = 0;
+        serr(ERROR_MSG);
 
         return;
     }
 
+    serr("Read %s with arg1 = %d", command, arg1);
+
+    if(arg2str != NULL) {
+        serr(" and arg2 = %d", arg2);
+    }
+
+    serr(".\n");
+
+    bool errorFlag = true;
+
     if(strcmp(command, CTRL_STR_ADDUSER) == 0) {
 
-        serr("Add user\n");
-
-        if(!process_add_user(arg1, arg2)) {
-
-            serr("ERROR\n");
-
-            return;
-        }
+        errorFlag = !process_add_user(arg1, arg2);
     } else if(strcmp(command, CTRL_STR_DELUSER) == 0) {
 
-        serr("Del user\n");
-
-        if(arg2str != NULL || !process_del_user(arg1)) {
-
-            serr("ERROR\n");
-
-            return;
-        }
+        errorFlag = arg2str != NULL || !process_del_user(arg1);
     } else if(strcmp(command, CTRL_STR_ADDMOVIE) == 0) {
 
-        serr("Add movie\n");
-
-        if(!process_add_movie(arg1, arg2)) {
-
-            serr("ERROR\n");
-
-            return;
-        }
+        errorFlag = !process_add_movie(arg1, arg2);
     } else if(strcmp(command, CTRL_STR_DELMOVIE) == 0) {
 
-        serr("Del movie\n");
-
-        if(!process_del_movie(arg1, arg2)) {
-
-            serr("ERROR\n");
-
-            return;
-        }
+        errorFlag = !process_del_movie(arg1, arg2);
     } else if(strcmp(command, CTRL_STR_MARATHON) == 0) {
 
-        serr("Marathon\n");
+        errorFlag = !process_marathon(arg1, arg2);
 
-        if(!process_marathon(arg1, arg2)) {
-
-            serr("ERROR\n");
-
+        if(!errorFlag) {
             return;
         }
-    } else {
+    }
 
-        serr("ERROR\n");
+    if(errorFlag) {
+        serr(ERROR_MSG);
+    } else {
+        printf(OK_MSG);
     }
 }
 
