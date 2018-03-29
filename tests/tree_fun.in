@@ -1,0 +1,71 @@
+addUser 0 1
+addUser 0 2
+addUser 0 3
+
+addUser 1 11
+addUser 1 12
+addUser 1 13
+
+addUser 2 21
+
+addUser 11 111
+addUser 11 112
+
+addUser 12 121
+addUser 12 122
+
+addUser 13 131
+addUser 13 132
+addUser 13 133
+addUser 13 134
+
+addUser 131 1311
+
+addUser 132 1321
+addUser 132 1322
+addUser 132 1323
+
+addUser 133 1331
+
+addUser 134 1341
+
+#//////////////////////////////////////
+
+addMovie 1321 1
+addMovie 1322 2
+addMovie 1323 3
+
+addMovie 131 10
+addMovie 132 20
+addMovie 133 30
+addMovie 134 40
+
+marathon 13 10
+
+delUser 132
+
+marathon 13 10
+
+#/////////////////////////////////////
+
+addMovie 11 100
+addMovie 12 200
+addMovie 13 300
+
+marathon 1 10
+
+delUser 13
+
+marathon 1 10
+
+#//////////////////////////////////////
+
+addMovie 1 1000
+addMovie 2 2000
+addMovie 3 3000
+
+marathon 0 10
+
+delUser 1
+
+marathon 0 10

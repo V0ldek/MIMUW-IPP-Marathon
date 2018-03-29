@@ -1,0 +1,122 @@
+#should be correct
+
+addUser 0 1
+addUser 0 2
+addUser 0 3
+addUser 0 4
+addUser 0 5
+
+addUser 1 11
+addUser 1 12
+addUser 1 13
+addUser 1 14
+
+addUser 2 21
+addUser 2 22
+addUser 2 23
+
+addUser 3 31
+addUser 3 32
+
+addUser 4 41
+
+addMovie 0 10
+
+addMovie 1 1
+addMovie 1 2
+addMovie 1 3
+addMovie 1 4
+addMovie 11 50
+addMovie 11 51
+addMovie 11 52
+addMovie 11 53
+addMovie 11 54
+addMovie 12 50
+addMovie 12 51
+addMovie 12 52
+addMovie 12 53
+addMovie 12 54
+addMovie 13 51
+addMovie 13 52
+addMovie 13 53
+addMovie 13 54
+marathon 1 6
+
+addMovie 2 100000
+addMovie 2 90000
+addMovie 2 80000
+addMovie 21 500
+addMovie 21 450
+addMovie 21 400
+addMovie 22 600
+addMovie 22 475
+marathon 2 5
+marathon 2 0
+
+addMovie 3 20
+addMovie 3 21
+addMovie 3 22
+addMovie 3 23
+addMovie 31 30
+addMovie 31 34
+addMovie 31 31
+addMovie 31 33
+addMovie 31 32
+addMovie 32 45
+addMovie 32 40
+addMovie 32 30
+addMovie 32 25
+addMovie 32 15
+addMovie 32 10
+marathon 3 50
+
+marathon 4 10
+
+marathon 0 10
+
+delUser 2
+marathon 0 10
+
+addUser 0 2
+
+delMovie 3 20
+delMovie 3 21
+delMovie 3 22
+delMovie 3 23
+
+marathon 3 50
+
+#///////////////////////////////////////////////////////
+#should return ERROR
+
+#no user 6
+addUser 6 3123
+delUser 6
+marathon 6 321
+addMovie 6 321
+delMovie 6 321
+
+#cannot duplicate users
+addUser 3 11
+addUser 0 0
+addUser 5 0
+addUser 3 3
+
+#no such movie
+delMovie 3 10
+
+#he already has that movie
+addMovie 32 10
+
+#he had this movie before he was deleted and re-added
+delMovie 2 90000
+
+#cannnot remove this user
+delUser 0
+
+#//////////////////////////////////////////////////////
+#misc
+addUser 0 65535
+addMovie 65535 2147483647
+delMovie 65535 2147483647
+delUser 65535

@@ -6,3 +6,6 @@
 *.o
 marathon
 .depend
+.idea
+cmake-build-debug
+CMakeLists.txt

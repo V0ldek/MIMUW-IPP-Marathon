@@ -172,6 +172,10 @@ static dlist_t *marathon_tree_calculate_marathon_list(tree *user, int k) {
 
     dnode_t *iter = dlist_get_front(myMovieList);
 
+    // Get the greates element on the user's list.
+    // As all elements are >= 0, we can assume -1 for an empty list.
+    int supremum = iter == NULL ? -1 : iter->elem->num;
+
     for(int i = 0; i < k && iter != NULL; ++i) {
 
         dlist_push_back(resultMovieList, dlist_make_elem_num(iter->elem->num));
@@ -186,6 +190,7 @@ static dlist_t *marathon_tree_calculate_marathon_list(tree *user, int k) {
         dlist_t *childMovieList =
                 marathon_tree_calculate_marathon_list(iter->elem->ptr, k);
 
+        movie_list_filter(childMovieList, supremum);
         movie_list_merge(resultMovieList, childMovieList);
         movie_list_shrink(resultMovieList, k);
 

@@ -73,63 +73,71 @@ bool movie_list_remove(dlist_t *list, int movie) {
     return false;
 }
 
-// Merges the lists leaving all elements from the master list and each
-// element from the other list that is greater than every element in the
-// original master list. Merged elements are removed from other
-// and added to master.
-// Takes time proportional to the elements added.
+// Destroys all elements lesser or equal to the requirement.
+void movie_list_filter(dlist_t *list, int requirement) {
+
+    NNULL(list, "movie_list_filter");
+
+    dnode_t *iter = list->head;
+
+    // Find the last remaining element.
+    while(dlist_next(iter) != NULL &&
+            dlist_next(iter)->elem->num > requirement) {
+
+        iter = dlist_next(iter);
+    }
+
+    // Remove all further elements.
+    while(dlist_next(iter) != NULL) {
+
+        dlist_pop_back(list);
+    }
+}
+
+// Merges two lists sustaining the descending ordering.
+// The resultant other list contains only the elements
+// that were already on the first list.
+// Takes time proportional to the size of two lists.
 void movie_list_merge(dlist_t *master, dlist_t *other) {
 
     NNULL(master, "master/movie_list_merge");
     NNULL(other, "other/movie_list_merge");
 
-    if(dlist_get_front(master) == NULL) {
+    dnode_t *iter = master->head;
+    dnode_t *otherIter = dlist_get_front(other);
 
-        dnode_t *oldHead = master->head;
-        dnode_t *oldTail = master->tail;
+    // Process all the elements on the other list.
+    while(dlist_is_valid(otherIter)) {
 
-        master->head = other->head;
-        master->tail = other->tail;
+        // Skip over elements in master that are greater than the current one.
+        while(dlist_next(iter) != NULL &&
+              dlist_next(iter)->elem->num > otherIter->elem->num) {
 
-        other->head = oldHead;
-        other->tail = oldTail;
+            iter = dlist_next(iter);
+        }
 
-        return;
+        dnode_t *next = dlist_next(otherIter);
+
+        // Only add if the result is unique.
+        if(dlist_next(iter) == NULL ||
+                dlist_next(iter)->elem->num < otherIter->elem->num) {
+
+            dnode_t *oldNext = iter->next;
+            dnode_t *oldOtherPrev = otherIter->prev;
+            dnode_t *oldOtherNext = otherIter->next;
+
+            oldOtherPrev->next = oldOtherNext;
+            oldOtherNext->prev = oldOtherPrev;
+
+            otherIter->prev = iter;
+            otherIter->next = oldNext;
+
+            oldNext->prev = otherIter;
+            iter->next = otherIter;
+        }
+
+        otherIter = next;
     }
-
-    // Greatest element in the master list.
-    int masterSupremum = dlist_get_front(master)->elem->num;
-
-    dnode_t *iter = dlist_get_front(other);
-
-    if(iter == NULL || iter->elem->num <= masterSupremum) {
-        return;
-    }
-
-    // Find the last element greater than the supremum.
-    while(dlist_next(iter) != NULL &&
-          dlist_next(iter)->elem->num > masterSupremum) {
-
-        iter = dlist_next(iter);
-    }
-
-    // Slice the other list and rearrange the pointers.
-    // Old other head becomes new master's head, use the old
-    // master's head as the new head of the other, which contains
-    // the rejected elements.
-
-    dnode_t *oldMasterHead = master->head;
-    dnode_t *oldOtherHead = other->head;
-    dnode_t *oldIterNext = iter->next;
-    dnode_t *newIterNext = dlist_get_front(master);
-
-    master->head = oldOtherHead;
-    other->head = oldMasterHead;
-
-    oldMasterHead->next = oldIterNext;
-    oldIterNext->prev = oldMasterHead;
-    iter->next = newIterNext;
-    newIterNext->prev = iter;
 }
 
 // Shrinks the list to hold at most k greatest elements.

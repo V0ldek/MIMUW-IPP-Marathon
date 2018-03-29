@@ -1,0 +1,81 @@
+# Input errors
+
+adduser 0 1
+addUser 1 0
+
+addUser 0  1
+addUser  0 1
+ addUser 0 1
+
+addUser 0 1 
+addUser
+0
+1
+
+addUser 0 -1
+addUser0 1
+
+addUser                                                                      0 1
+addUser #0 0 1
+
+# Creates a 0->1 branch and then attaches vertex 2 to 1.
+# Vertex 2 then gets 3 children and gets deleted.
+# Then the vertex 2 gets added with 3 as parent and gets 3 more children.
+# Then it is removed, added again as child of 4, etc. etc.
+# This goes on until there are 23 vertices in the tree, a lot of movies are
+# added and some marathons calculated.
+
+addUser 0 1
+
+addUser 1 2
+addUser 2 3
+addUser 2 4
+addUser 2 5
+
+delUser 2
+
+addUser 3 2
+
+addUser 2 6
+addUser 2 7
+addUser 2 8
+
+delUser 2
+
+addUser 4 2
+
+addUser 2 9
+addUser 2 11
+addUser 2 10
+
+delUser 2
+
+addUser 5 2
+
+addUser 2 12
+addUser 2 13
+addUser 2 14
+
+delUser 2
+
+addUser 6 2
+
+addUser 2 17
+addUser 2 16
+addUser 2 15
+
+delUser 2
+
+addUser 7 2
+
+addUser 2 20
+addUser 2 18
+addUser 2 19
+
+delUser 2
+
+addUser 8 2
+
+addUser 2 21
+addUser 2 22
+addUser 2 23

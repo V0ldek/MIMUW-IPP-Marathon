@@ -20,11 +20,13 @@ bool movie_list_add(dlist_t *list, int movie);
 // Takes time proportional to the size of the list.
 bool movie_list_remove(dlist_t *list, int movie);
 
-// Merges the lists leaving all elements from the master lists and each
-// element from the other list that is greater than every element in the
-// original master list. Merged elements are removed from other
-// and added to master.
-// Takes time proportional to the elements added.
+// Destroys all elements lesser or equal to the requirement.
+void movie_list_filter(dlist_t *list, int requirement);
+
+// Merges two lists sustaining the descending ordering.
+// The resultant other list contains only the elements
+// that were already on the first list.
+// Takes time proportional to the size of two lists.
 void movie_list_merge(dlist_t *master, dlist_t *other);
 
 // Shrinks the list to hold at most k greatest elements.
