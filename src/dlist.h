@@ -90,4 +90,8 @@ void dlist_pop_back(dlist_t *list);
 // Warning: does not release any resources contained in ptr elements.
 void dlist_destroy(dlist_t **list);
 
+// Prints the list assuming it contains integers.
+// Prints EMPTY_LIST_MSG if it is empty.
+void dlist_print_num(dlist_t *list);
+
 #endif // DLIST_H

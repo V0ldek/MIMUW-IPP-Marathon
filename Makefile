@@ -6,11 +6,21 @@ PROG=main
 CC=gcc
 
 # C compiler flags
-CFLAGS=-Wall -Wextra -O2
+CFLAGS=-Wall -Wextra -g -O2
 
 # Linker flags
 LDFLAGS=-Wall -Wextra
 
+# Valgrind flags
+VALGRINDFLAGS=--leak-check=full --show-leak-kinds=all
+
+# Release/debug
+DEBUG ?= 0
+ifeq ($(DEBUG), 0)
+	CFLAGS+=-DNDEBUG
+endif
+	
+# Sources directory
 SRCDIR=src
 
 # Source files
@@ -21,17 +31,15 @@ $(SRCDIR)/marathon_tree.c $(SRCDIR)/main.c
 OBJS=$(SRCS:.c=.o)
 
 # Creates the $(PROG) executable (release version)
-all: $(PROG) -D NDEBUG
-
-# Creates the $(PROG) executable with debug info
-debug: $(PROG)
+all: $(PROG)
 
 # Runs the $(PROG) executable with valgrind
-run: valgrind ./$(PROG)
+run: $(PROG)
+	valgrind $(VALGRINDFLAGS) ./$(PROG)
 
 $(PROG): $(OBJS)
 	$(CC) $^ $(LDFLAGS) -o $@
-	    
+	  
 %.c: %.o
 	$(CC) $^ $(CFLAGS) -c
     

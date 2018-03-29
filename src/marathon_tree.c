@@ -27,15 +27,16 @@ static tree *marathon_tree_get_vertex(int userID);
 // Internal function releasing resources for a single vertex.
 static void marathon_tree_destroy_vertex(tree **vertex);
 
+// Recursively destroy all vertices and release their resources, rooted in user
+static void marathon_tree_destroy(tree **user);
+
 // Create the root user with ID 0
-tree *marathon_tree_initialize() {
+void marathon_tree_initialize() {
 
     ISNULL(root, "marathon_tree_initialize");
 
-    users = malloc(MAX_NODES * sizeof(dnode_t *));
+    users = calloc(MAX_NODES, sizeof(dnode_t *));
     root = tree_make(dlist_make_list());
-
-    return root;
 }
 
 // Create a new user and add him as child of parent.
@@ -80,6 +81,8 @@ bool marathon_tree_remove(int userID) {
     dlist_insert_list_after(prevNode, user->children);
 
     marathon_tree_destroy(&user);
+
+    users[userID] = NULL;
 
     return true;
 }
@@ -130,6 +133,17 @@ dlist_t *marathon_tree_get_marathon_list(int userID, int k) {
     return marathon_tree_calculate_marathon_list(user, k);
 }
 
+// Release all the resources allocated and destroy the entire tree.
+void marathon_tree_cleanup() {
+
+    NNULL(root, "root/marathon_tree_cleanup");
+    NNULL(users, "users/marathon_tree_cleanup");
+
+    marathon_tree_destroy(&root);
+
+    free(users);
+}
+
 // Internal auxiliary function returning a vertex with given id.
 static tree *marathon_tree_get_vertex(int userID) {
 
@@ -160,7 +174,7 @@ static dlist_t *marathon_tree_calculate_marathon_list(tree *user, int k) {
 
     for(int i = 0; i < k && iter != NULL; ++i) {
 
-        dlist_push_back(resultMovieList, iter->elem);
+        dlist_push_back(resultMovieList, dlist_make_elem_num(iter->elem->num));
 
         iter = dlist_next(iter);
     }
@@ -190,25 +204,25 @@ static void marathon_tree_destroy_vertex(tree **vertex) {
         return;
     }
 
-    dlist_destroy((*vertex)->value);
+    dlist_destroy((dlist_t **) &(*vertex)->value);
     tree_destroy(vertex);
 }
 
-// Recursively destroy all vertices and release their resources
-void marathon_tree_destroy(tree **root) {
+// Recursively destroy all vertices and release their resources rooted in user
+static void marathon_tree_destroy(tree **user) {
 
-    if(*root == NULL) {
+    if(*user == NULL) {
         return;
     }
 
-    dnode_t *iter = dlist_get_front((*root)->children);
+    dnode_t *iter;
 
-    while(dlist_is_valid(iter)) {
+    while((iter = dlist_get_back((*user)->children)) != NULL) {
 
         marathon_tree_destroy((tree **) &iter->elem->ptr);
 
-        iter = dlist_next(iter);
+        dlist_pop_back((*user)->children);
     }
 
-    marathon_tree_destroy_vertex(root);
+    marathon_tree_destroy_vertex(user);
 }

@@ -37,6 +37,10 @@ void tree_add(tree *parent, tree *otherRoot) {
 // void* elem!
 void tree_destroy(tree **root) {
 
+    if(*root == NULL) {
+        return;
+    }
+
     dlist_t *childrenList = (*root)->children;
     dnode_t *iter = dlist_get_front(childrenList);
 

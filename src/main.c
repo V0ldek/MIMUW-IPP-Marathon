@@ -11,49 +11,15 @@
 #include "tree.h"
 #include "marathon_tree.h"
 
-#define CTRL_STR_ADDUSER "addUser"
-#define CTRL_STR_DELUSER "delUser"
-#define CTRL_STR_ADDMOVIE "addMovie"
-#define CTRL_STR_DELMOVIE "delMovie"
-#define CTRL_STR_MARATHON "marathon"
-#define ERROR_MSG "ERROR\n"
-#define OK_MSG "OK\n"
-#define EMPTY_LIST_MSG "NONE\n"
-#define INITIAL_BUFFER_SIZE 32
-
 size_t bufferSize;
 char *buffer;
-tree *root;
-
-void print_list(dlist_t *list) {
-
-    NNULL(list, "print_list");
-
-    dnode_t *iter = dlist_get_front(list);
-
-    if(iter == NULL) {
-
-        printf(EMPTY_LIST_MSG);
-
-        return;
-    }
-
-    while(dlist_next(iter) != NULL) {
-
-        printf("%d ", iter->elem->num);
-
-        iter = dlist_next(iter);
-    }
-
-    printf("%d\n", iter->elem->num);
-}
 
 void initialize() {
 
     bufferSize = INITIAL_BUFFER_SIZE;
     buffer = malloc(bufferSize * sizeof(char));
 
-    root = marathon_tree_initialize();
+    marathon_tree_initialize();
 }
 
 bool process_add_user(int parentID, int userID) {
@@ -87,10 +53,12 @@ bool process_marathon(int userID, int k) {
     dlist_t *marathonResult = marathon_tree_get_marathon_list(userID, k);
 
     if(marathonResult != NULL) {
-        print_list(marathonResult);
+        dlist_print_num(marathonResult);
     } else {
         return false;
     }
+
+    dlist_destroy(&marathonResult);
 
     return true;
 }
@@ -144,14 +112,6 @@ void process_line(ssize_t characters) {
         return;
     }
 
-    serr("Read %s with arg1 = %d", command, arg1);
-
-    if(arg2str != NULL) {
-        serr(" and arg2 = %d", arg2);
-    }
-
-    serr(".\n");
-
     bool errorFlag = true;
 
     if(strcmp(command, CTRL_STR_ADDUSER) == 0) {
@@ -186,7 +146,7 @@ void cleanup() {
 
     free(buffer);
 
-    marathon_tree_destroy(&root);
+    marathon_tree_cleanup();
 }
 
 int main(void) {

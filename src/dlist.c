@@ -140,8 +140,10 @@ void dlist_insert_list_after(dnode_t *iter, dlist_t *other) {
     dnode_t *otherFront = dlist_get_front(other);
     dnode_t *otherBack = dlist_get_back(other);
 
-    NNULL(otherFront, "front/dlist_insert_list_after");
-    NNULL(otherBack, "back/dlist_insert_list_after");
+    // List is empty, nothing to insert.
+    if(otherFront == NULL) {
+        return;
+    }
 
     dnode_t *oldNext = iter->next;
 
@@ -165,6 +167,7 @@ void dlist_remove(dnode_t *iter) {
     iter->next->prev = iter->prev;
     iter->prev->next = iter->next;
 
+    free(iter->elem);
     free(iter);
 }
 
@@ -183,6 +186,8 @@ void dlist_pop_back(dlist_t *list) {
 // Warning: does not release any resources contained in ptr elements.
 void dlist_destroy(dlist_t **list) {
 
+    NNULL(*list, "dlist_destroy");
+
     while(dlist_get_back(*list) != NULL) {
         dlist_pop_back(*list);
     }
@@ -192,4 +197,29 @@ void dlist_destroy(dlist_t **list) {
     free(*list);
 
     *list = NULL;
+}
+
+// Prints the list assuming it contains integers.
+// Prints EMPTY_LIST_MSG if it is empty.
+void dlist_print_num(dlist_t *list) {
+
+    NNULL(list, "print_list");
+
+    dnode_t *iter = dlist_get_front(list);
+
+    if(iter == NULL) {
+
+        printf(EMPTY_LIST_MSG);
+
+        return;
+    }
+
+    while(dlist_next(iter) != NULL) {
+
+        printf("%d ", iter->elem->num);
+
+        iter = dlist_next(iter);
+    }
+
+    printf("%d\n", iter->elem->num);
 }

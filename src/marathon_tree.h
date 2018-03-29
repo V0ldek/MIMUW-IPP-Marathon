@@ -16,7 +16,7 @@
 #define MAX_NODES 65536
 
 // Create the root user with ID 0 and set up the tree for further use.
-tree *marathon_tree_initialize();
+void marathon_tree_initialize();
 
 // Create a new user and add him as child of parent.
 // Takes constant time.
@@ -41,7 +41,7 @@ bool marathon_tree_remove_movie(int userID, int movieRating);
 // Time proportional to k * size of the tree.
 dlist_t *marathon_tree_get_marathon_list(int userID, int k);
 
-// Recursively destroy all nodes and release their resources, including root.
-void marathon_tree_destroy(tree **root);
+// Release all the resources allocated and destroy the entire tree.
+void marathon_tree_cleanup();
 
 #endif //IPP_MARATHON_MARATHON_TREE_H

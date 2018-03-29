@@ -19,11 +19,17 @@ bool movie_list_add(dlist_t *list, int movie) {
 
     dnode_t *iter = dlist_get_front(list);
 
-    if(iter == NULL) {
+    // Check if there are greater elements.
+    if(iter == NULL || iter->elem->num < movie) {
 
         dlist_push_front(list, dlist_make_elem_num(movie));
 
         return true;
+    }
+
+    // Don't add if this is the greatest element.
+    if(iter->elem->num == movie) {
+        return false;
     }
 
     // Skip over greater elements.
