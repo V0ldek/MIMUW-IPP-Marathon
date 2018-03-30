@@ -30,7 +30,7 @@ for f in $TESTDIR/*.in; do
 	ERR_DIFF=$?
 	
 	echo -n "${f#$TESTDIR/}: exit code $EXIT_CODE";
-	if [ $OUT_DIFF -eq 0 -a $ERR_DIFF -eq 0 ];
+	if [ $OUT_DIFF -eq 0 -a $ERR_DIFF -eq 0 -a $EXIT_CODE -eq 0];
 	then 
 		echo -n " OK"; 
 		((CORRECT+=1));

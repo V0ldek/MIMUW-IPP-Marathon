@@ -79,3 +79,111 @@ addUser 8 2
 addUser 2 21
 addUser 2 22
 addUser 2 23
+
+addMovie 1 5
+addMovie 1 10
+addMovie 1 15
+addMovie 1 20
+
+addMovie 2 11
+addMovie 2 30
+addMovie 2 50
+
+addMovie 3 11
+addMovie 3 12
+addMovie 3 13
+
+addMovie 4 20
+
+addMovie 5 100
+addMovie 5 1000
+
+addMovie 6 173
+#ERROR
+addMovie 6 173
+
+addMovie 7 200
+addMovie 7 210
+addMovie 7 220
+addMovie 7 230
+addMovie 7 240
+addMovie 7 250
+addMovie 7 260
+addMovie 7 270
+addMovie 7 280
+addMovie 7 290
+addMovie 7 300
+
+delMovie 7 230
+delMovie 7 260
+
+addMovie 8 100
+
+addMovie 9 900
+
+addMovie 10 1000
+
+addMovie 11 250
+
+addMovie 12 260
+addMovie 12 360
+
+addMovie 13 300
+addMovie 13 310
+
+addMovie 14 10
+addMovie 14 20
+
+addMovie 15 90
+addMovie 15 99
+
+addMovie 16 70
+addMovie 16 700
+
+addMovie 17 150
+addMovie 17 250
+
+addMovie 18 300
+addMovie 18 710
+
+addMovie 19 100
+addMovie 19 110
+addMovie 19 120
+addMovie 19 130
+addMovie 19 140
+addMovie 19 150
+
+delMovie 19 130
+
+addMovie 20 2000
+
+addMovie 21 21000
+
+addMovie 22 220000
+
+addMovie 23 2300000
+
+marathon 0 100
+marathon 1 100
+marathon 2 100
+marathon 3 100
+marathon 4 100
+marathon 5 100
+marathon 6 100
+marathon 7 100
+marathon 8 100
+marathon 9 100
+marathon 10 100
+marathon 11 100
+marathon 12 100
+marathon 13 100
+marathon 14 100
+marathon 15 100
+marathon 16 100
+marathon 17 100
+marathon 18 100
+marathon 19 100
+marathon 20 100
+marathon 21 100
+marathon 22 100
+marathon 23 100
