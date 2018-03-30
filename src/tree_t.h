@@ -10,23 +10,23 @@
 #include "dlist.h"
 
 // Simple tree structure with a list of successors and generic value.
-typedef struct tree {
+typedef struct tree_t {
 
     void *value;
     dlist_t *children;
 
-} tree;
+} tree_t;
 
 // Creates a new tree with passed value and empty children list.
-tree *tree_make(void *value);
+tree_t *tree_make(void *value);
 
 // Adds the tree as a child of parent.
 // Adds at the end of the children list.
-void tree_add(tree *parent, tree *otherRoot);
+void tree_add(tree_t *parent, tree_t *otherRoot);
 
 // Destroys the entire tree recursively and NULLs the root pointer.
 // Destroying a tree element does not free resources from the contained
 // void* elem!
-void tree_destroy(tree **root);
+void tree_destroy(tree_t **root);
 
 #endif // TREE_H

@@ -6,13 +6,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "tree.h"
-#include "utils.h"
+#include "tree_t.h"
+#include "defines.h"
 
 // Creates a new tree with passed value and empty children list.
-tree *tree_make(void *value) {
+tree_t *tree_make(void *value) {
 
-    tree *newTree = malloc(sizeof(tree));
+    tree_t *newTree = malloc(sizeof(tree_t));
 
     NNULL(newTree, "tree_make.\n");
 
@@ -24,7 +24,7 @@ tree *tree_make(void *value) {
 
 // Adds the tree as a child of parent.
 // Adds at the end of the children list.
-void tree_add(tree *parent, tree *otherRoot) {
+void tree_add(tree_t *parent, tree_t *otherRoot) {
 
     NNULL(parent, "parent/tree_add");
     NNULL(otherRoot, "otherRoot/tree_add");
@@ -35,7 +35,7 @@ void tree_add(tree *parent, tree *otherRoot) {
 // Destroys the entire tree recursively and NULLs the root pointer.
 // Destroying a tree element does not free resources from the contained
 // void* elem!
-void tree_destroy(tree **root) {
+void tree_destroy(tree_t **root) {
 
     if(*root == NULL) {
         return;
@@ -46,7 +46,7 @@ void tree_destroy(tree **root) {
 
     while(dlist_is_valid(iter)) {
 
-        tree_destroy((tree **) &iter->elem->ptr);
+        tree_destroy((tree_t **) &iter->elem->ptr);
 
         dlist_next(iter);
     }

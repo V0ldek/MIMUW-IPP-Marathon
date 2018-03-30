@@ -10,10 +10,7 @@
 #define IPP_MARATHON_MARATHON_TREE_H
 
 #include "stdbool.h"
-#include "tree.h"
-
-// Maximal expected number of nodes.
-#define MAX_NODES 65536
+#include "tree_t.h"
 
 // Create the root user with ID 0 and set up the tree for further use.
 void marathon_tree_initialize();

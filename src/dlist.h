@@ -23,8 +23,8 @@ typedef union dlist_elem_t {
 typedef struct dnode_t {
 
     struct dnode_t *prev;
-    dlist_elem_t *elem;
     struct dnode_t *next;
+    dlist_elem_t *elem;
 
 } dnode_t;
 

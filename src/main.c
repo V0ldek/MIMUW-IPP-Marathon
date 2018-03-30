@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include "utils.h"
-#include "tree.h"
+#include "defines.h"
+#include "tree_t.h"
 #include "marathon_tree.h"
 
 size_t bufferSize;
@@ -54,7 +54,8 @@ bool process_marathon(int userID, int k) {
 
     if(marathonResult != NULL) {
         dlist_print_num(marathonResult);
-    } else {
+    }
+    else {
         return false;
     }
 
@@ -117,16 +118,20 @@ void process_line(ssize_t characters) {
     if(strcmp(command, CTRL_STR_ADDUSER) == 0) {
 
         errorFlag = !process_add_user(arg1, arg2);
-    } else if(strcmp(command, CTRL_STR_DELUSER) == 0) {
+    }
+    else if(strcmp(command, CTRL_STR_DELUSER) == 0) {
 
         errorFlag = arg2str != NULL || !process_del_user(arg1);
-    } else if(strcmp(command, CTRL_STR_ADDMOVIE) == 0) {
+    }
+    else if(strcmp(command, CTRL_STR_ADDMOVIE) == 0) {
 
         errorFlag = !process_add_movie(arg1, arg2);
-    } else if(strcmp(command, CTRL_STR_DELMOVIE) == 0) {
+    }
+    else if(strcmp(command, CTRL_STR_DELMOVIE) == 0) {
 
         errorFlag = !process_del_movie(arg1, arg2);
-    } else if(strcmp(command, CTRL_STR_MARATHON) == 0) {
+    }
+    else if(strcmp(command, CTRL_STR_MARATHON) == 0) {
 
         errorFlag = !process_marathon(arg1, arg2);
 
@@ -137,7 +142,8 @@ void process_line(ssize_t characters) {
 
     if(errorFlag) {
         serr(ERROR_MSG);
-    } else {
+    }
+    else {
         printf(OK_MSG);
     }
 }
@@ -153,11 +159,28 @@ int main(void) {
 
     initialize();
 
+#ifndef NDEBUG
+    serr("Sizeof:\n");
+    serr("dlist_elem_t = %d\n", (int) sizeof(dlist_elem_t));
+    serr("dnode_t = %d\n", (int) sizeof(dnode_t));
+    serr("dlist_t = %d\n", (int) sizeof(dlist_t));
+    serr("tree_t = %d\n", (int) sizeof(tree_t));
+#endif
+
     ssize_t characters = 0;
 
     while((characters = getline(&buffer, &bufferSize, stdin)) > 0) {
 
         process_line(characters);
+    }
+
+    if(!feof(stdin)) {
+
+#ifndef NEDBUG
+        serr("Getline error.\n");
+#endif
+
+        exit(1);
     }
 
     cleanup();

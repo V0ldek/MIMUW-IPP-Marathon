@@ -24,7 +24,7 @@ endif
 SRCDIR=src
 
 # Source files
-SRCS=$(SRCDIR)/dlist.c $(SRCDIR)/tree.c $(SRCDIR)/movie_list.c \
+SRCS=$(SRCDIR)/dlist.c $(SRCDIR)/tree.c \
 $(SRCDIR)/marathon_tree.c $(SRCDIR)/main.c
 
 # Required objects

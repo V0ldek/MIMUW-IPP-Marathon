@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "dlist.h"
-#include "utils.h"
+#include "defines.h"
 
 // Makes a new empty list object. Always takes at least 2 * sizeof(dnode_t)
 // memory for dummy objects.
