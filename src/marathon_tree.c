@@ -5,8 +5,6 @@
  * Author: Mateusz Gienieczko
  * Copyright (C) 2018
  */
-#include <stdlib.h>
-#include <stdio.h>
 #include "marathon_tree.h"
 #include "defines.h"
 
@@ -22,6 +20,11 @@ static void marathon_tree_calculate_marathon_list(tree_t *user, int *k,
                                                   dlist_t **resultMovieList,
                                                   int supremum);
 
+// Internal auxiliary function adding the user's movies to the list.
+static void marathon_tree_add_movies_to_marathon_list(tree_t *user, int *k,
+                                                      dlist_t **resultMovieList,
+                                                      int supremum);
+
 // Internal auxiliary function returning a vertex of given id.
 static tree_t *marathon_tree_get_vertex(int userID);
 
@@ -31,6 +34,7 @@ static void marathon_tree_destroy_vertex(tree_t **vertex);
 // Recursively destroy all vertices and release their resources, rooted in user
 static void marathon_tree_destroy(tree_t **user);
 
+
 // Create the root user with ID 0
 void marathon_tree_initialize() {
 
@@ -38,6 +42,17 @@ void marathon_tree_initialize() {
 
     users = calloc(MAX_USERS, sizeof(dnode_t *));
     root = tree_make(dlist_make_list());
+}
+
+// Release all the resources allocated and destroy the entire tree.
+void marathon_tree_cleanup() {
+
+    NNULL(root, "root/marathon_tree_cleanup");
+    NNULL(users, "users/marathon_tree_cleanup");
+
+    marathon_tree_destroy(&root);
+
+    free(users);
 }
 
 // Create a new user and add him as child of parent.
@@ -100,28 +115,16 @@ bool marathon_tree_add_movie(int userID, int movieRating) {
 
     dlist_t *list = user->value;
 
-    dnode_t *iter = dlist_get_front(list);
-
-    // Check if there are greater elements.
-    if(iter == NULL || iter->elem->num < movieRating) {
-
-        dlist_push_front(list, dlist_make_elem_num(movieRating));
-
-        return true;
-    }
-
-    // Don't add if this is the greatest element.
-    if(iter->elem->num == movieRating) {
-        return false;
-    }
+    dnode_t *iter = list->head;
 
     // Skip over greater elements.
     while(dlist_next(iter) != NULL &&
-          dlist_next(iter)->elem->num > movieRating) {
+          dlist_next(iter)->elem.num > movieRating) {
+
         iter = iter->next;
     }
 
-    if(dlist_next(iter) == NULL || dlist_next(iter)->elem->num != movieRating) {
+    if(dlist_next(iter) == NULL || dlist_next(iter)->elem.num != movieRating) {
 
         dlist_insert_after(iter, dlist_make_elem_num(movieRating));
 
@@ -146,12 +149,11 @@ bool marathon_tree_remove_movie(int userID, int movieRating) {
     dnode_t *iter = dlist_get_front(list);
 
     // Skip over greater elements
-    while(dlist_is_valid(iter) && iter->elem->num > movieRating) {
-
+    while(dlist_is_valid(iter) && iter->elem.num > movieRating) {
         iter = dlist_next(iter);
     }
 
-    if(dlist_is_valid(iter) && iter->elem->num == movieRating) {
+    if(dlist_is_valid(iter) && iter->elem.num == movieRating) {
 
         dlist_remove(iter);
 
@@ -185,15 +187,75 @@ dlist_t *marathon_tree_get_marathon_list(int userID, int k) {
     return resultMovieList;
 }
 
-// Release all the resources allocated and destroy the entire tree.
-void marathon_tree_cleanup() {
+// Internal auxiliary function calculating the marathon list recursively.
+static void marathon_tree_calculate_marathon_list(tree_t *user, int *k,
+                                                  dlist_t **resultMovieList,
+                                                  int supremum) {
 
-    NNULL(root, "root/marathon_tree_cleanup");
-    NNULL(users, "users/marathon_tree_cleanup");
+    dnode_t *iter = dlist_get_front(user->value);
 
-    marathon_tree_destroy(&root);
+    int mySupremum = supremum;
 
-    free(users);
+    if(dlist_is_valid(iter) && iter->elem.num > mySupremum) {
+        mySupremum = iter->elem.num;
+    }
+
+    marathon_tree_add_movies_to_marathon_list(user, k, resultMovieList,
+                                              supremum);
+
+    // Recurse over children nodes.
+    dnode_t *childIter = dlist_get_front(user->children);
+
+    while(dlist_is_valid(childIter)) {
+
+        marathon_tree_calculate_marathon_list(childIter->elem.ptr, k,
+                                              resultMovieList, mySupremum);
+
+        childIter = dlist_next(childIter);
+    }
+}
+
+// Internal auxiliary function adding the user's movies to the list.
+static void marathon_tree_add_movies_to_marathon_list(tree_t *user, int *k,
+                                                      dlist_t **resultMovieList,
+                                                      int supremum) {
+
+    dnode_t *iter = dlist_get_front(user->value);
+    dnode_t *resultIter = (*resultMovieList)->head;
+
+    // Update the list with user's movies, assuring they are bigger
+    // than the supremum.
+    // If the list is less than k in length adds another element.
+    // Otherwise replaces the smallest movie currently on the list.
+    while(dlist_is_valid(iter) && iter->elem.num > supremum) {
+
+        // Skip over greater elements.
+        while(dlist_next(resultIter) != NULL &&
+              dlist_next(resultIter)->elem.num > iter->elem.num) {
+
+            resultIter = dlist_next(resultIter);
+        }
+        dnode_t *next = dlist_next(resultIter);
+
+        // If we can add another element.
+        if(*k > 0 && (next == NULL || next->elem.num != iter->elem.num)) {
+
+            dlist_insert_after(resultIter, dlist_make_elem_num(iter->elem.num));
+            --(*k);
+        }
+        else if(next != NULL && next->elem.num != iter->elem.num) {
+
+            // Get the smallest element, move him to after iter and
+            // update its contained value.
+            dnode_t *smallest = dlist_get_back(*resultMovieList);
+
+            dlist_insert_node_after(resultIter, smallest);
+
+            smallest->elem.num = iter->elem.num;
+        }
+
+        iter = dlist_next(iter);
+    }
 }
 
 // Internal auxiliary function returning a vertex with given id.
@@ -213,85 +275,7 @@ static tree_t *marathon_tree_get_vertex(int userID) {
         return NULL;
     }
 
-    return userLocation->elem->ptr;
-}
-
-// Internal auxiliary function calculating the marathon list recursively.
-static void marathon_tree_calculate_marathon_list(tree_t *user, int *k,
-                                                  dlist_t **resultMovieList,
-                                                  int supremum) {
-
-    dlist_t *myMovieList = user->value;
-
-    dnode_t *iter = dlist_get_front(myMovieList);
-    dnode_t *resultIter = (*resultMovieList)->head;
-
-    int mySupremum = supremum;
-
-    if(dlist_is_valid(iter) && iter->elem->num > mySupremum) {
-        mySupremum = iter->elem->num;
-    }
-
-    // Update the list with user's movies, assuring they are bigger
-    // than the supremum.
-    // If the list is less than k in length adds another element.
-    // Otherwise replaces the smallest movie currently on the list.
-    while(dlist_is_valid(iter) &&
-          iter->elem->num > supremum) {
-
-        // Skip over greater elements.
-        while(dlist_next(resultIter) != NULL &&
-              dlist_next(resultIter)->elem->num > iter->elem->num) {
-
-            resultIter = dlist_next(resultIter);
-        }
-
-        // If we can add another element.
-        if(*k > 0 &&
-           (dlist_next(resultIter) == NULL ||
-            dlist_next(resultIter)->elem->num != iter->elem->num)) {
-
-            dlist_insert_after(resultIter,
-                               dlist_make_elem_num(iter->elem->num));
-            --(*k);
-        } else if(dlist_next(resultIter) != NULL &&
-                  dlist_next(resultIter)->elem->num != iter->elem->num) {
-
-            // Get the smallest element, move him to after iter and
-            // update its contained value.
-            dnode_t *smallest = dlist_get_back(*resultMovieList);
-
-            if(smallest != resultIter->next) {
-
-                dnode_t *oldIterNext = resultIter->next;
-                dnode_t *oldSmallestNext = smallest->next;
-                dnode_t *oldSmallestPrev = smallest->prev;
-
-                oldSmallestPrev->next = oldSmallestNext;
-                oldSmallestNext->prev = oldSmallestPrev;
-
-                oldIterNext->prev = smallest;
-                resultIter->next = smallest;
-
-                smallest->prev = resultIter;
-                smallest->next = oldIterNext;
-            }
-
-            smallest->elem->num = iter->elem->num;
-        }
-
-        iter = dlist_next(iter);
-    }
-
-    dnode_t *childIter = dlist_get_front(user->children);
-
-    while(dlist_is_valid(childIter)) {
-
-        marathon_tree_calculate_marathon_list(childIter->elem->ptr, k,
-                                              resultMovieList, mySupremum);
-
-        childIter = dlist_next(childIter);
-    }
+    return userLocation->elem.ptr;
 }
 
 // Internal function releasing resources for a single vertex.
@@ -316,7 +300,7 @@ static void marathon_tree_destroy(tree_t **user) {
 
     while((iter = dlist_get_back((*user)->children)) != NULL) {
 
-        marathon_tree_destroy((tree_t **) &iter->elem->ptr);
+        marathon_tree_destroy((tree_t **) &iter->elem.ptr);
 
         dlist_pop_back((*user)->children);
     }

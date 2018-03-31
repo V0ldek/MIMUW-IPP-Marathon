@@ -6,7 +6,7 @@ PROG=main
 CC=gcc
 
 # C compiler flags
-CFLAGS=-Wall -Wextra -g -O2
+CFLAGS=-Wall -Wextra -g -O2 -std=c11
 
 # Linker flags
 LDFLAGS=-Wall -Wextra

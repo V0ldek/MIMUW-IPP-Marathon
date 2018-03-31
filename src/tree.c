@@ -4,9 +4,7 @@
  * Copyright (C) 2018
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include "tree_t.h"
+#include "tree.h"
 #include "defines.h"
 
 // Creates a new tree with passed value and empty children list.
@@ -46,9 +44,7 @@ void tree_destroy(tree_t **root) {
 
     while(dlist_is_valid(iter)) {
 
-        tree_destroy((tree_t **) &iter->elem->ptr);
-
-        dlist_next(iter);
+        tree_destroy((tree_t **) &iter->elem.ptr);
     }
 
     dlist_destroy(&(*root)->children);

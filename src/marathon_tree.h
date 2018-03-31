@@ -9,11 +9,13 @@
 #ifndef IPP_MARATHON_MARATHON_TREE_H
 #define IPP_MARATHON_MARATHON_TREE_H
 
-#include "stdbool.h"
-#include "tree_t.h"
+#include "tree.h"
 
 // Create the root user with ID 0 and set up the tree for further use.
 void marathon_tree_initialize();
+
+// Release all the resources allocated and destroy the entire tree.
+void marathon_tree_cleanup();
 
 // Create a new user and add him as child of parent.
 // Takes constant time.
@@ -38,7 +40,5 @@ bool marathon_tree_remove_movie(int userID, int movieRating);
 // Time proportional to k * size of the tree.
 dlist_t *marathon_tree_get_marathon_list(int userID, int k);
 
-// Release all the resources allocated and destroy the entire tree.
-void marathon_tree_cleanup();
 
 #endif //IPP_MARATHON_MARATHON_TREE_H

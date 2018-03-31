@@ -6,7 +6,6 @@
 #ifndef TREE_H
 #define TREE_H
 
-#include <stdbool.h>
 #include "dlist.h"
 
 // Simple tree structure with a list of successors and generic value.

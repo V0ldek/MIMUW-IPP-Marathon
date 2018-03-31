@@ -3,8 +3,6 @@
  * Author: Mateusz Gienieczko
  * Copyright (C) 2018
  */
-#include <stdlib.h>
-#include <stdio.h>
 #include "dlist.h"
 #include "defines.h"
 
@@ -16,15 +14,15 @@ dlist_t *dlist_make_list() {
 
     NNULL(list, "dlist_make_list");
 
-    list->head = dlist_make_node(NULL, NULL, NULL);
-    list->tail = dlist_make_node(list->head, NULL, NULL);
+    list->head = dlist_make_node(NULL, dlist_make_elem_ptr(NULL), NULL);
+    list->tail = dlist_make_node(list->head, dlist_make_elem_ptr(NULL), NULL);
     list->head->next = list->tail;
 
     return list;
 }
 
 // Makes a new node object.
-dnode_t *dlist_make_node(dnode_t *prev, dlist_elem_t *elem, dnode_t *next) {
+dnode_t *dlist_make_node(dnode_t *prev, dlist_elem_t elem, dnode_t *next) {
 
     dnode_t *node = malloc(sizeof(dnode_t));
 
@@ -38,26 +36,20 @@ dnode_t *dlist_make_node(dnode_t *prev, dlist_elem_t *elem, dnode_t *next) {
 }
 
 // Makes a new dlist_elem_t object with passed pointer as value ptr.
-dlist_elem_t *dlist_make_elem_ptr(void *ptr) {
+dlist_elem_t dlist_make_elem_ptr(void *ptr) {
 
-    dlist_elem_t *elem = malloc(sizeof(dlist_elem_t));
-
-    NNULL(elem, "dlist_make_elem_ptr");
-
-    elem->ptr = ptr;
+    dlist_elem_t elem;
+    elem.ptr = ptr;
 
     return elem;
 
 }
 
 // Makes a new dlist_elem_t object with passed integer as value num.
-dlist_elem_t *dlist_make_elem_num(int num) {
+dlist_elem_t dlist_make_elem_num(int num) {
 
-    dlist_elem_t *elem = malloc(sizeof(dlist_elem_t));
-
-    NNULL(elem, "dlist_make_elem_num");
-
-    elem->num = num;
+    dlist_elem_t elem;
+    elem.num = num;
 
     return elem;
 }
@@ -93,16 +85,8 @@ dnode_t *dlist_next(dnode_t *iter) {
     return dlist_is_valid(iter->next) ? iter->next : NULL;
 }
 
-// Creates a new node with passed value and adds it at the front of the list.
-void dlist_push_front(dlist_t *list, dlist_elem_t *elem) {
-
-    NNULL(list, "dlist_push_front");
-
-    dlist_insert_after(list->head, elem);
-}
-
 // Creates a new node with passed value and adds it at the end of the list.
-void dlist_push_back(dlist_t *list, dlist_elem_t *elem) {
+void dlist_push_back(dlist_t *list, dlist_elem_t elem) {
 
     NNULL(list, "list/dlist_push_back");
     NNULL(list->tail, "tail/dlist_push_back");
@@ -112,7 +96,7 @@ void dlist_push_back(dlist_t *list, dlist_elem_t *elem) {
 
 // Creates a new node after the passed one.
 // The passed node has to be not the tail.
-void dlist_insert_after(dnode_t *iter, dlist_elem_t *elem) {
+void dlist_insert_after(dnode_t *iter, dlist_elem_t elem) {
 
     NNULL(iter, "iter/dlist_insert_after");
     NNULL(iter->next, "next/dlist_insert_after");
@@ -123,6 +107,29 @@ void dlist_insert_after(dnode_t *iter, dlist_elem_t *elem) {
 
     iter->next = newNode;
     oldNext->prev = newNode;
+}
+
+// Cuts the other node from its list and inserts after iter.
+// The passed node has to be not the tail.
+void dlist_insert_node_after(dnode_t *iter, dnode_t *other) {
+
+    NNULL(iter->next, "dlist_insert_node_after");
+
+    if(other != iter->next) {
+
+        dnode_t *oldIterNext = iter->next;
+        dnode_t *oldOtherNext = other->next;
+        dnode_t *oldOtherPrev = other->prev;
+
+        oldOtherPrev->next = oldOtherNext;
+        oldOtherNext->prev = oldOtherPrev;
+
+        oldIterNext->prev = other;
+        iter->next = other;
+
+        other->prev = iter;
+        other->next = oldIterNext;
+    }
 }
 
 // Inserts all the elements from the passed list after the given node.
@@ -167,7 +174,6 @@ void dlist_remove(dnode_t *iter) {
     iter->next->prev = iter->prev;
     iter->prev->next = iter->next;
 
-    free(iter->elem);
     free(iter);
 }
 
@@ -180,23 +186,6 @@ void dlist_pop_back(dlist_t *list) {
     if(dlist_is_valid(list->tail->prev)) {
         dlist_remove(list->tail->prev);
     }
-}
-
-// Destroys all elements on the list.
-// Warning: does not release any resources contained in ptr elements.
-void dlist_destroy(dlist_t **list) {
-
-    NNULL(*list, "dlist_destroy");
-
-    while(dlist_get_back(*list) != NULL) {
-        dlist_pop_back(*list);
-    }
-
-    free((*list)->head);
-    free((*list)->tail);
-    free(*list);
-
-    *list = NULL;
 }
 
 // Prints the list assuming it contains integers.
@@ -216,10 +205,27 @@ void dlist_print_num(dlist_t *list) {
 
     while(dlist_next(iter) != NULL) {
 
-        printf("%d ", iter->elem->num);
+        printf("%d ", iter->elem.num);
 
         iter = dlist_next(iter);
     }
 
-    printf("%d\n", iter->elem->num);
+    printf("%d\n", iter->elem.num);
+}
+
+// Destroys all elements on the list.
+// Warning: does not release any resources contained in ptr elements.
+void dlist_destroy(dlist_t **list) {
+
+    NNULL(*list, "dlist_destroy");
+
+    while(dlist_get_back(*list) != NULL) {
+        dlist_pop_back(*list);
+    }
+
+    free((*list)->head);
+    free((*list)->tail);
+    free(*list);
+
+    *list = NULL;
 }

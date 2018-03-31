@@ -30,27 +30,28 @@
 // Maximal expected number of nodes.
 #define MAX_USERS 65536
 
+// Macros asserting that the passed pointer is or is not NULL.
 #ifndef NDEBUG
 
 #define NNULL(ptr, name) if((ptr) == NULL) { \
-    serr("NULL pointer in %s.\n", name); exit(1); \
-    exit(1); \
-}
+        serr("NULL pointer in %s.\n", name); exit(1); \
+        exit(1); \
+    }
 
 #define ISNULL(ptr, name) if((ptr) != NULL) { \
-    serr("Pointer already initialized in %s.\n", name);\
-    exit(1); \
-}
+        serr("Pointer already initialized in %s.\n", name);\
+        exit(1); \
+    }
 
 #else
 
 #define NNULL(ptr, name) if((ptr) == NULL) { \
-    exit(1); \
-}
+        exit(1); \
+    }
 
 #define ISNULL(ptr, name) if((ptr) != NULL) { \
-    exit(1); \
-}
+        exit(1); \
+    }
 
 #endif //NDEBUG
 

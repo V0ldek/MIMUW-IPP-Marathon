@@ -8,11 +8,11 @@
 #include <string.h>
 #include <errno.h>
 #include "defines.h"
-#include "tree_t.h"
 #include "marathon_tree.h"
 
 size_t bufferSize;
 char *buffer;
+
 
 void initialize() {
 
@@ -20,6 +20,13 @@ void initialize() {
     buffer = malloc(bufferSize * sizeof(char));
 
     marathon_tree_initialize();
+}
+
+void cleanup() {
+
+    free(buffer);
+
+    marathon_tree_cleanup();
 }
 
 bool process_add_user(int parentID, int userID) {
@@ -64,10 +71,36 @@ bool process_marathon(int userID, int k) {
     return true;
 }
 
-void process_line(ssize_t characters) {
+bool read_line() {
+
+    int character;
+    unsigned int pos = 0;
+
+    while((character = fgetc(stdin)) != '\n' && character != EOF) {
+
+        if(pos + 1 >= bufferSize) {
+
+            bufferSize *= 2;
+            buffer = realloc(buffer, bufferSize);
+
+            NNULL(buffer, "read_line");
+        }
+
+        buffer[pos++] = (char) character;
+    }
+
+    // The '\n' or eof is removed and replaced with a null termination.
+    buffer[pos] = '\0';
+
+    return character != EOF;
+}
+
+void process_line() {
+
+    size_t characters = strlen(buffer);
 
     // Empty line
-    if(characters == 1) {
+    if(characters == 0) {
         return;
     }
 
@@ -82,14 +115,9 @@ void process_line(ssize_t characters) {
     char *arg2str = strtok(NULL, " \n");
     char *remaining = strtok(NULL, " \n");
 
-    // Get the expected length of the input including whitespaces.
-    ssize_t readLength = (command == NULL ? 0 : strlen(command) + 1) +
-                         (arg1str == NULL ? 0 : strlen(arg1str) + 1) +
-                         (arg2str == NULL ? 0 : strlen(arg2str) + 1);
-
-    // If remaining is not null, we have junk at the end of the line.
-    // If readLength != characters, there were multiple whitespaces
-    if(remaining != NULL || readLength != characters) {
+    // If remaining != NULL we had trash at the end of line.
+    // If the second case is true we had whitespaces at the end of line.
+    if(remaining != NULL || *(buffer + characters - 1) == ' ') {
 
         serr(ERROR_MSG);
 
@@ -148,39 +176,13 @@ void process_line(ssize_t characters) {
     }
 }
 
-void cleanup() {
-
-    free(buffer);
-
-    marathon_tree_cleanup();
-}
-
 int main(void) {
 
     initialize();
 
-#ifndef NDEBUG
-    serr("Sizeof:\n");
-    serr("dlist_elem_t = %d\n", (int) sizeof(dlist_elem_t));
-    serr("dnode_t = %d\n", (int) sizeof(dnode_t));
-    serr("dlist_t = %d\n", (int) sizeof(dlist_t));
-    serr("tree_t = %d\n", (int) sizeof(tree_t));
-#endif
+    while(read_line()) {
 
-    ssize_t characters = 0;
-
-    while((characters = getline(&buffer, &bufferSize, stdin)) > 0) {
-
-        process_line(characters);
-    }
-
-    if(!feof(stdin)) {
-
-#ifndef NEDBUG
-        serr("Getline error.\n");
-#endif
-
-        exit(1);
+        process_line();
     }
 
     cleanup();
