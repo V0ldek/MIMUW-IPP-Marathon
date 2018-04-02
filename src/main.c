@@ -1,5 +1,6 @@
 /**
  * Marathon task implementation.
+ *
  * Author: Mateusz Gienieczko
  * Copyright (C) 2018
  */
@@ -10,40 +11,43 @@
 #include "defines.h"
 #include "marathon_tree.h"
 
-size_t bufferSize;
-char *buffer;
+// Create the tree and the input buffer.
+void initialize(char **buffer, size_t *bufferSize) {
 
-
-void initialize() {
-
-    bufferSize = INITIAL_BUFFER_SIZE;
-    buffer = malloc(bufferSize * sizeof(char));
+    *bufferSize = INITIAL_BUFFER_SIZE;
+    *buffer = malloc(*bufferSize * sizeof(char));
 
     marathon_tree_initialize();
 }
 
-void cleanup() {
+// Release resources.
+void cleanup(char **buffer, size_t *bufferSize) {
 
-    free(buffer);
+    free(*buffer);
+    *bufferSize = 0;
 
     marathon_tree_cleanup();
 }
 
-bool is_in_user_range(long user) {
+// True iff the userID is allowed by the specification.
+bool is_in_user_range(long userID) {
 
-    return user >= 0 && user <= MAX_USER;
+    return userID >= 0 && userID <= MAX_USER;
 }
 
+// True iff the movieRating is allowed by the specification.
 bool is_in_movie_range(long movieRating) {
 
     return movieRating >= 0 && movieRating <= MAX_MOVIE;
 }
 
+// True iff the k parameter is allowed by the specification.
 bool is_in_marathon_range(long k) {
 
     return k >= 0 && k <= MAX_MARATHON;
 }
 
+// Try to perform the addUser operation.
 bool process_add_user(long parentID, long userID) {
 
     if(!is_in_user_range(parentID) || !is_in_user_range(userID)) {
@@ -53,6 +57,7 @@ bool process_add_user(long parentID, long userID) {
     return marathon_tree_add((unsigned int) parentID, (unsigned int) userID);
 }
 
+// Try to perform the delUser operation.
 bool process_del_user(long userID) {
 
     if(userID == 0 || !is_in_user_range(userID)) {
@@ -62,6 +67,7 @@ bool process_del_user(long userID) {
     return marathon_tree_remove((unsigned int) userID);
 }
 
+// Try to perform the addMovie operation.
 bool process_add_movie(long userID, long movieRating) {
 
     if(!is_in_user_range(userID) || !is_in_movie_range(movieRating)) {
@@ -71,6 +77,7 @@ bool process_add_movie(long userID, long movieRating) {
     return marathon_tree_add_movie((unsigned int) userID, movieRating);
 }
 
+// Try to perform the delMovie operation.
 bool process_del_movie(long userID, long movieRating) {
 
     if(!is_in_user_range(userID) || !is_in_movie_range(movieRating)) {
@@ -80,6 +87,7 @@ bool process_del_movie(long userID, long movieRating) {
     return marathon_tree_remove_movie((unsigned int) userID, movieRating);
 }
 
+// Try to perform the marathon operation.
 bool process_marathon(long userID, long k) {
 
     if(!is_in_user_range(userID) || !is_in_marathon_range(k)) {
@@ -101,36 +109,40 @@ bool process_marathon(long userID, long k) {
     return true;
 }
 
-bool read_line() {
+// Reads a line from the standard input into buffer.
+bool read_line(char **buffer, size_t *bufferSize) {
 
     int character;
     unsigned int pos = 0;
 
     while((character = fgetc(stdin)) != '\n' && character != EOF) {
 
-        if(pos + 1 >= bufferSize) {
+        if(pos + 1 >= *bufferSize) {
 
-            bufferSize *= 2;
-            buffer = realloc(buffer, bufferSize);
+            *bufferSize *= 2;
+            *buffer = realloc(*buffer, *bufferSize);
 
-            NNULL(buffer, "read_line");
+            NNULL(*buffer, "read_line");
         }
 
-        buffer[pos++] = (char) character;
+        (*buffer)[pos++] = (char) character;
     }
 
     // The '\n' or eof is removed and replaced with a null termination.
-    buffer[pos] = '\0';
+    (*buffer)[pos] = '\0';
 
     return character != EOF;
 }
 
-void process_line() {
+// Processes the command in buffer by performing the appropriate the operation
+// or printing the ERROR_MSG from defines.h.
+void process_line(char *buffer) {
 
-    size_t characters = strlen(buffer);
+    // Plus one because of the endline.
+    size_t characters = strlen(buffer) + 1;
 
     // Empty line
-    if(characters == 0) {
+    if(characters == 1) {
         return;
     }
 
@@ -145,9 +157,14 @@ void process_line() {
     char *arg2str = strtok(NULL, " \n");
     char *remaining = strtok(NULL, " \n");
 
-    // If remaining != NULL we had trash at the end of line.
-    // If the second case is true we had whitespaces at the end of line.
-    if(remaining != NULL || *(buffer + characters - 1) == ' ') {
+    // Get the expected length of the input including whitespaces.
+    size_t readLength = (command == NULL ? 0 : strlen(command) + 1) +
+                        (arg1str == NULL ? 0 : strlen(arg1str) + 1) +
+                        (arg2str == NULL ? 0 : strlen(arg2str) + 1);
+
+    // If remaining is not null, we have junk at the end of the line.
+    // If readLength != characters, there were multiple whitespaces
+    if(remaining != NULL || readLength != characters) {
 
         serr(ERROR_MSG);
 
@@ -164,9 +181,12 @@ void process_line() {
         arg2 = strtol(arg2str, NULL, 10);
     }
 
+    // This means that strtol conversion resulted in an overflow
+    // and the argument/s was/were out of range of long.
     if(errno != 0) {
 
         serr(ERROR_MSG);
+        errno = 0;
 
         return;
     }
@@ -193,6 +213,7 @@ void process_line() {
 
         errorFlag = !process_marathon(arg1, arg2);
 
+        // Marathon does not print OK.
         if(!errorFlag) {
             return;
         }
@@ -208,14 +229,17 @@ void process_line() {
 
 int main(void) {
 
-    initialize();
+    size_t bufferSize;
+    char *buffer;
 
-    while(read_line()) {
+    initialize(&buffer, &bufferSize);
 
-        process_line();
+    while(read_line(&buffer, &bufferSize)) {
+
+        process_line(buffer);
     }
 
-    cleanup();
+    cleanup(&buffer, &bufferSize);
 
     return 0;
 }

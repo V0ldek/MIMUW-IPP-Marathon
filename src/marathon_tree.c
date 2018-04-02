@@ -1,7 +1,6 @@
 /**
- * Data structure allowing more advanced tree operations, like recursive
- * calculation of values and sustaining the tree's structure throughout
- * additions and deletions in constant time.
+ * Implementation of marathon_tree.h.
+ *
  * Author: Mateusz Gienieczko
  * Copyright (C) 2018
  */
@@ -16,35 +15,40 @@ static dnode_t **users = NULL;
 static tree_t *root = NULL;
 
 // Internal auxiliary function calculating the marathon list recursively.
-static void marathon_tree_calculate_marathon_list(tree_t *user, long *k,
-                                                  dlist_t **resultMovieList,
-                                                  long supremum);
+static void
+marathon_tree_calculate_marathon_list(tree_t *user, long *remainingSpace,
+                                      dlist_t **resultMovieList,
+                                      long supremum);
 
 // Internal auxiliary function adding the user's movies to the list.
-static void marathon_tree_add_movies_to_marathon_list(tree_t *user, long *k,
-                                                      dlist_t **resultMovieList,
-                                                      long supremum);
+static void
+marathon_tree_add_movies_to_marathon_list(tree_t *user, long *remainingSpace,
+                                          dlist_t **resultMovieList,
+                                          long threshold);
 
-// Internal auxiliary function returning a vertex of given id.
+// Internal auxiliary function returning a vertex of given id or NULL if such
+// user does not exist.
 static tree_t *marathon_tree_get_vertex(unsigned int userID);
 
 // Internal function releasing resources for a single vertex.
 static void marathon_tree_destroy_vertex(tree_t **vertex);
 
-// Recursively destroy all vertices and release their resources, rooted in user
+// Recursively destroy all vertices and release their resources, rooted in user.
 static void marathon_tree_destroy(tree_t **user);
 
 
-// Create the root user with ID 0
 void marathon_tree_initialize() {
 
     ISNULL(root, "marathon_tree_initialize");
 
     users = calloc(MAX_USER + 1, sizeof(dnode_t *));
+
+    // Assure alloc did not fail.
+    NNULL(users, "marathon_tree_initialize");
+
     root = tree_make(dlist_make_list());
 }
 
-// Release all the resources allocated and destroy the entire tree.
 void marathon_tree_cleanup() {
 
     NNULL(root, "root/marathon_tree_cleanup");
@@ -55,8 +59,6 @@ void marathon_tree_cleanup() {
     free(users);
 }
 
-// Create a new user and add him as child of parent.
-// Takes constant time.
 bool marathon_tree_add(unsigned int parentID, unsigned int userID) {
 
     tree_t *parent = marathon_tree_get_vertex(parentID);
@@ -77,12 +79,11 @@ bool marathon_tree_add(unsigned int parentID, unsigned int userID) {
     return true;
 }
 
-// Remove the user from the tree.
-// Amortized constant time.
 bool marathon_tree_remove(unsigned int userID) {
 
     tree_t *user = marathon_tree_get_vertex(userID);
 
+    // Can never delete a root or a dead user.
     if(user == NULL || user == root) {
         return false;
     }
@@ -92,6 +93,7 @@ bool marathon_tree_remove(unsigned int userID) {
 
     // Remove the user from his parent's children list,
     // but link all of user's children to that list in his place.
+    // Since it is only a few pointers reattached the time is constant.
     dlist_remove(userNode);
 
     dlist_insert_list_after(prevNode, user->children);
@@ -103,8 +105,6 @@ bool marathon_tree_remove(unsigned int userID) {
     return true;
 }
 
-// Add the given movie to the user's movie_list
-// Time proportional to the number of preferences of the user.
 bool marathon_tree_add_movie(unsigned int userID, long movieRating) {
 
     tree_t *user = marathon_tree_get_vertex(userID);
@@ -113,9 +113,9 @@ bool marathon_tree_add_movie(unsigned int userID, long movieRating) {
         return false;
     }
 
-    dlist_t *list = user->value;
+    dlist_t *movieList = user->value;
 
-    dnode_t *iter = list->head;
+    dnode_t *iter = movieList->head;
 
     // Skip over greater elements.
     while(dlist_next(iter) != NULL &&
@@ -124,6 +124,7 @@ bool marathon_tree_add_movie(unsigned int userID, long movieRating) {
         iter = iter->next;
     }
 
+    // Only insert if the element is already on the list.
     if(dlist_next(iter) == NULL || dlist_next(iter)->elem.num != movieRating) {
 
         dlist_insert_after(iter, dlist_make_elem_num(movieRating));
@@ -134,8 +135,6 @@ bool marathon_tree_add_movie(unsigned int userID, long movieRating) {
     return false;
 }
 
-// Remove the given movie from the user's movie_list
-// Time proportional to the number of preferences of the user.
 bool marathon_tree_remove_movie(unsigned int userID, long movieRating) {
 
     tree_t *user = marathon_tree_get_vertex(userID);
@@ -144,15 +143,16 @@ bool marathon_tree_remove_movie(unsigned int userID, long movieRating) {
         return false;
     }
 
-    dlist_t *list = user->value;
+    dlist_t *movieList = user->value;
 
-    dnode_t *iter = dlist_get_front(list);
+    dnode_t *iter = dlist_get_front(movieList);
 
-    // Skip over greater elements
+    // Skip over greater elements.
     while(dlist_is_valid(iter) && iter->elem.num > movieRating) {
         iter = dlist_next(iter);
     }
 
+    // Check if the movie exists on the list.
     if(dlist_is_valid(iter) && iter->elem.num == movieRating) {
 
         dlist_remove(iter);
@@ -164,11 +164,6 @@ bool marathon_tree_remove_movie(unsigned int userID, long movieRating) {
 
 }
 
-// Gives a list of at most k movies that are chosen from:
-// - All the user's preferences
-// - Results of the marathon function for its children, but only movies that
-//   have higher ratings than all of the original user's ratings are considered.
-// Time proportional to k * size of the tree.
 dlist_t *marathon_tree_get_marathon_list(unsigned int userID, long k) {
 
     tree_t *user = marathon_tree_get_vertex(userID);
@@ -176,31 +171,39 @@ dlist_t *marathon_tree_get_marathon_list(unsigned int userID, long k) {
     if(user == NULL) {
         return NULL;
     }
+
+    // Make sure we do not go through the entire tree
+    // needlessly in the corner case.
     if(k == 0) {
         return dlist_make_list();
     }
 
     dlist_t *resultMovieList = dlist_make_list();
 
+    // Calculate the list recursively.
+    // Initial supremum can be -1 because all movie rating's are >= 0.
     marathon_tree_calculate_marathon_list(user, &k, &resultMovieList, -1);
 
     return resultMovieList;
 }
 
-// Internal auxiliary function calculating the marathon list recursively.
-static void marathon_tree_calculate_marathon_list(tree_t *user, long *k,
-                                                  dlist_t **resultMovieList,
-                                                  long supremum) {
+static void
+marathon_tree_calculate_marathon_list(tree_t *user, long *remainingSpace,
+                                      dlist_t **resultMovieList,
+                                      long supremum) {
 
     dnode_t *iter = dlist_get_front(user->value);
 
-    long mySupremum = supremum;
+    // Get the new supremum for this subtree.
+    long newSupremum = supremum;
 
-    if(dlist_is_valid(iter) && iter->elem.num > mySupremum) {
-        mySupremum = iter->elem.num;
+    if(dlist_is_valid(iter) && iter->elem.num > newSupremum) {
+        newSupremum = iter->elem.num;
     }
 
-    marathon_tree_add_movies_to_marathon_list(user, k, resultMovieList,
+    // Update the list with values from this user's movie list.
+    marathon_tree_add_movies_to_marathon_list(user, remainingSpace,
+                                              resultMovieList,
                                               supremum);
 
     // Recurse over children nodes.
@@ -208,26 +211,31 @@ static void marathon_tree_calculate_marathon_list(tree_t *user, long *k,
 
     while(dlist_is_valid(childIter)) {
 
-        marathon_tree_calculate_marathon_list(childIter->elem.ptr, k,
-                                              resultMovieList, mySupremum);
+        marathon_tree_calculate_marathon_list(childIter->elem.ptr,
+                                              remainingSpace,
+                                              resultMovieList, newSupremum);
 
         childIter = dlist_next(childIter);
     }
 }
 
-// Internal auxiliary function adding the user's movies to the list.
-static void marathon_tree_add_movies_to_marathon_list(tree_t *user, long *k,
-                                                      dlist_t **resultMovieList,
-                                                      long supremum) {
+// Adds the elements from the user's movie list to the resultMovieList.
+// Ignores elements lower than the threshold. Extends the list by at most
+// remainingSpace elements. Tries to maximise the elements on the list by
+// removing lowest elements when remainingSpace is zero.
+static void
+marathon_tree_add_movies_to_marathon_list(tree_t *user, long *remainingSpace,
+                                          dlist_t **resultMovieList,
+                                          long threshold) {
 
     dnode_t *iter = dlist_get_front(user->value);
     dnode_t *resultIter = (*resultMovieList)->head;
 
     // Update the list with user's movies, assuring they are bigger
-    // than the supremum.
-    // If the list is less than k in length adds another element.
+    // than the threshold.
+    // If the list is less than remainingSpace in length adds another element.
     // Otherwise replaces the smallest movie currently on the list.
-    while(dlist_is_valid(iter) && iter->elem.num > supremum) {
+    while(dlist_is_valid(iter) && iter->elem.num > threshold) {
 
         // Skip over greater elements.
         while(dlist_next(resultIter) != NULL &&
@@ -238,10 +246,11 @@ static void marathon_tree_add_movies_to_marathon_list(tree_t *user, long *k,
         dnode_t *next = dlist_next(resultIter);
 
         // If we can add another element.
-        if(*k > 0 && (next == NULL || next->elem.num != iter->elem.num)) {
+        if(*remainingSpace > 0 &&
+           (next == NULL || next->elem.num != iter->elem.num)) {
 
             dlist_insert_after(resultIter, dlist_make_elem_num(iter->elem.num));
-            --(*k);
+            --(*remainingSpace);
         }
         else if(next != NULL && next->elem.num != iter->elem.num) {
 
@@ -258,7 +267,6 @@ static void marathon_tree_add_movies_to_marathon_list(tree_t *user, long *k,
     }
 }
 
-// Internal auxiliary function returning a vertex with given id.
 static tree_t *marathon_tree_get_vertex(unsigned int userID) {
 
     if(userID > MAX_USER) {
@@ -278,7 +286,6 @@ static tree_t *marathon_tree_get_vertex(unsigned int userID) {
     return userLocation->elem.ptr;
 }
 
-// Internal function releasing resources for a single vertex.
 static void marathon_tree_destroy_vertex(tree_t **vertex) {
 
     if(*vertex == NULL) {
@@ -289,7 +296,6 @@ static void marathon_tree_destroy_vertex(tree_t **vertex) {
     tree_destroy(vertex);
 }
 
-// Recursively destroy all vertices and release their resources rooted in user
 static void marathon_tree_destroy(tree_t **user) {
 
     if(*user == NULL) {

@@ -1,5 +1,6 @@
 /**
  * Simple tree data structure.
+ *
  * Author: Mateusz Gienieczko
  * Copyright (C) 2018
  */
@@ -8,7 +9,7 @@
 
 #include "dlist.h"
 
-// Simple tree structure with a list of successors and generic value.
+// Simple tree structure with a list of successors and generic pointer value.
 typedef struct tree_t {
 
     void *value;
@@ -16,10 +17,10 @@ typedef struct tree_t {
 
 } tree_t;
 
-// Creates a new tree with passed value and empty children list.
+// Creates a new tree node with passed value and empty children list.
 tree_t *tree_make(void *value);
 
-// Adds the tree as a child of parent.
+// Adds the otherRoot as a child of parent.
 // Adds at the end of the children list.
 void tree_add(tree_t *parent, tree_t *otherRoot);
 

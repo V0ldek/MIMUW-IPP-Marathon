@@ -2,6 +2,7 @@
  * Doubly linked list data structure.
  * All operations with the exception of dlist_destroy and dlist_print_num
  * take constant time.
+ *
  * Author: Mateusz Gienieczko
  * Copyright (C) 2018
  */
@@ -11,7 +12,7 @@
 
 #include <stdbool.h>
 
-// Elements held in the dlist - ints or pointers.
+// Elements held in the list - longs or pointers.
 typedef union dlist_elem_t {
 
     void *ptr;
@@ -19,18 +20,18 @@ typedef union dlist_elem_t {
 
 } dlist_elem_t;
 
-// Doubly linked dlist generic node holding elem_t type elements.
+// Doubly linked list generic node holding elem_t type elements.
 typedef struct dnode_t {
 
+    dlist_elem_t elem;
     struct dnode_t *prev;
     struct dnode_t *next;
-    dlist_elem_t elem;
 
 } dnode_t;
 
-// A list is a head and a tail. Both head and tail are always not NULL.
-// Head and tail are dummy nodes. They are the only elements with NULLs as
-// values of elem.
+// A list is a head and a tail. Both head and tail must be always not NULL.
+// Head and tail are dummy nodes.
+// They are the only elements that can contain a NULL as next or prev.
 typedef struct dlist_t {
 
     dnode_t *head;
@@ -52,9 +53,11 @@ dlist_elem_t dlist_make_elem_ptr(void *ptr);
 dlist_elem_t dlist_make_elem_num(long num);
 
 // Returns the actual first element of the list (not dummy).
+// NULL if list is empty.
 dnode_t *dlist_get_front(dlist_t *list);
 
 // Returns the actual last element of the list (not dummy).
+// NULL if list is empty.
 dnode_t *dlist_get_back(dlist_t *list);
 
 // Returns true if passed node is a correct, non-dummy element of a list.
@@ -71,24 +74,27 @@ void dlist_push_back(dlist_t *list, dlist_elem_t elem);
 // The passed node has to be not the tail.
 void dlist_insert_after(dnode_t *iter, dlist_elem_t elem);
 
-// Cuts the other node from its list and inserts after iter.
-// The passed node has to be not the tail.
+// Removes the other node from its list and inserts after iter.
+// The iter has to be not the tail.
+// The other has to be neither a head nor a tail.
 void dlist_insert_node_after(dnode_t *iter, dnode_t *other);
 
 // Inserts all the elements from the passed list after the given node.
-// The node has to be not the tail.
 // The elements are moved, so the other list is emptied as a result.
-// Takes constant time.
+// The iter has to be not the tail.
+// Other has to be a correct list.
 void dlist_insert_list_after(dnode_t *iter, dlist_t *other);
 
 // Removes the node from the list. It has to be a valid, non-dummy node.
 void dlist_remove(dnode_t *iter);
 
-// Removes the last element (ignores dummies)
+// Removes the last element (ignores dummies).
+// Does nothing if the list is empty.
 void dlist_pop_back(dlist_t *list);
 
 // Prints the list assuming it contains integers.
-// Prints EMPTY_LIST_MSG if it is empty.
+// Ends with a newline.
+// Prints EMPTY_LIST_MSG from defines.h if it is empty.
 void dlist_print_num(dlist_t *list);
 
 // Destroys all elements on the list.

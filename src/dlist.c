@@ -1,17 +1,17 @@
 /**
- * Linked list data structure.
+ * Implementation of dlist.h.
+ *
  * Author: Mateusz Gienieczko
  * Copyright (C) 2018
  */
 #include "dlist.h"
 #include "defines.h"
 
-// Makes a new empty list object. Always takes at least 2 * sizeof(dnode_t)
-// memory for dummy objects.
 dlist_t *dlist_make_list() {
 
     dlist_t *list = malloc(sizeof(dlist_t));
 
+    // Assure that malloc has not failed.
     NNULL(list, "dlist_make_list");
 
     list->head = dlist_make_node(NULL, dlist_make_elem_ptr(NULL), NULL);
@@ -21,11 +21,11 @@ dlist_t *dlist_make_list() {
     return list;
 }
 
-// Makes a new node object.
 dnode_t *dlist_make_node(dnode_t *prev, dlist_elem_t elem, dnode_t *next) {
 
     dnode_t *node = malloc(sizeof(dnode_t));
 
+    // Assure that malloc has not failed.
     NNULL(node, "dlist_make_node");
 
     node->prev = prev;
@@ -35,7 +35,6 @@ dnode_t *dlist_make_node(dnode_t *prev, dlist_elem_t elem, dnode_t *next) {
     return node;
 }
 
-// Makes a new dlist_elem_t object with passed pointer as value ptr.
 dlist_elem_t dlist_make_elem_ptr(void *ptr) {
 
     dlist_elem_t elem;
@@ -45,7 +44,6 @@ dlist_elem_t dlist_make_elem_ptr(void *ptr) {
 
 }
 
-// Makes a new dlist_elem_t object with passed integer as value num.
 dlist_elem_t dlist_make_elem_num(long num) {
 
     dlist_elem_t elem;
@@ -54,7 +52,6 @@ dlist_elem_t dlist_make_elem_num(long num) {
     return elem;
 }
 
-// Returns the actual first element of the list (not dummy).
 dnode_t *dlist_get_front(dlist_t *list) {
 
     NNULL(list, "dlist_get_front");
@@ -62,7 +59,6 @@ dnode_t *dlist_get_front(dlist_t *list) {
     return dlist_is_valid(list->head->next) ? list->head->next : NULL;
 }
 
-// Returns the actual last element of the list (not dummy).
 dnode_t *dlist_get_back(dlist_t *list) {
 
     NNULL(list, "dlist_get_back");
@@ -70,14 +66,11 @@ dnode_t *dlist_get_back(dlist_t *list) {
     return dlist_is_valid(list->tail->prev) ? list->tail->prev : NULL;
 }
 
-// Returns true if passed node is a correct, non-dummy element of a list.
 bool dlist_is_valid(dnode_t *iter) {
 
     return iter != NULL && iter->next != NULL && iter->prev != NULL;
 }
 
-// Returns the element after iter or NULL if it is the last element
-// (ignores dummies).
 dnode_t *dlist_next(dnode_t *iter) {
 
     NNULL(iter, "dlist_next");
@@ -85,7 +78,6 @@ dnode_t *dlist_next(dnode_t *iter) {
     return dlist_is_valid(iter->next) ? iter->next : NULL;
 }
 
-// Creates a new node with passed value and adds it at the end of the list.
 void dlist_push_back(dlist_t *list, dlist_elem_t elem) {
 
     NNULL(list, "list/dlist_push_back");
@@ -94,8 +86,6 @@ void dlist_push_back(dlist_t *list, dlist_elem_t elem) {
     dlist_insert_after(list->tail->prev, elem);
 }
 
-// Creates a new node after the passed one.
-// The passed node has to be not the tail.
 void dlist_insert_after(dnode_t *iter, dlist_elem_t elem) {
 
     NNULL(iter, "iter/dlist_insert_after");
@@ -109,11 +99,11 @@ void dlist_insert_after(dnode_t *iter, dlist_elem_t elem) {
     oldNext->prev = newNode;
 }
 
-// Cuts the other node from its list and inserts after iter.
-// The passed node has to be not the tail.
 void dlist_insert_node_after(dnode_t *iter, dnode_t *other) {
 
-    NNULL(iter->next, "dlist_insert_node_after");
+    NNULL(iter->next, "iternext/dlist_insert_node_after");
+    NNULL(other->next, "othernext/dlist_insert_node_after");
+    NNULL(other->prev, "otherprev/dlist_insert_node_after");
 
     if(other != iter->next) {
 
@@ -132,10 +122,6 @@ void dlist_insert_node_after(dnode_t *iter, dnode_t *other) {
     }
 }
 
-// Inserts all the elements from the passed list after the given node.
-// The node has to be not the tail.
-// The elements are moved, so the other list is emptied as a result.
-// Takes constant time.
 void dlist_insert_list_after(dnode_t *iter, dlist_t *other) {
 
     NNULL(iter, "iter/dlist_insert_list_after");
@@ -164,7 +150,6 @@ void dlist_insert_list_after(dnode_t *iter, dlist_t *other) {
     other->tail->prev = NULL;
 }
 
-// Removes the node from the list. It has to be a valid, non-dummy node.
 void dlist_remove(dnode_t *iter) {
 
     NNULL(iter, "iter/dlist_remove");
@@ -174,10 +159,11 @@ void dlist_remove(dnode_t *iter) {
     iter->next->prev = iter->prev;
     iter->prev->next = iter->next;
 
+    // Note that the lem is not managed by us and is not freed.
+
     free(iter);
 }
 
-// Removes the last element (ignores dummies)
 void dlist_pop_back(dlist_t *list) {
 
     NNULL(list, "list/dlist_pop_back");
@@ -188,8 +174,6 @@ void dlist_pop_back(dlist_t *list) {
     }
 }
 
-// Prints the list assuming it contains integers.
-// Prints EMPTY_LIST_MSG if it is empty.
 void dlist_print_num(dlist_t *list) {
 
     NNULL(list, "print_list");
@@ -213,8 +197,6 @@ void dlist_print_num(dlist_t *list) {
     printf("%ld\n", iter->elem.num);
 }
 
-// Destroys all elements on the list.
-// Warning: does not release any resources contained in ptr elements.
 void dlist_destroy(dlist_t **list) {
 
     NNULL(*list, "dlist_destroy");

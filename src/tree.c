@@ -1,5 +1,6 @@
 /**
- * Tree data structure
+ * Implementation of tree.h.
+ *
  * Author: Mateusz Gienieczko
  * Copyright (C) 2018
  */
@@ -7,11 +8,11 @@
 #include "tree.h"
 #include "defines.h"
 
-// Creates a new tree with passed value and empty children list.
 tree_t *tree_make(void *value) {
 
     tree_t *newTree = malloc(sizeof(tree_t));
 
+    // Assure malloc has not failed.
     NNULL(newTree, "tree_make.\n");
 
     newTree->value = value;
@@ -20,8 +21,6 @@ tree_t *tree_make(void *value) {
     return newTree;
 }
 
-// Adds the tree as a child of parent.
-// Adds at the end of the children list.
 void tree_add(tree_t *parent, tree_t *otherRoot) {
 
     NNULL(parent, "parent/tree_add");
@@ -30,9 +29,6 @@ void tree_add(tree_t *parent, tree_t *otherRoot) {
     dlist_push_back(parent->children, dlist_make_elem_ptr(otherRoot));
 }
 
-// Destroys the entire tree recursively and NULLs the root pointer.
-// Destroying a tree element does not free resources from the contained
-// void* elem!
 void tree_destroy(tree_t **root) {
 
     if(*root == NULL) {
@@ -49,6 +45,9 @@ void tree_destroy(tree_t **root) {
 
     dlist_destroy(&(*root)->children);
 
+    // Note that the void *value is not managed by us and not freed.
+
     free(*root);
+
     *root = NULL;
 }
