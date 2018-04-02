@@ -46,7 +46,7 @@ dlist_elem_t dlist_make_elem_ptr(void *ptr) {
 }
 
 // Makes a new dlist_elem_t object with passed integer as value num.
-dlist_elem_t dlist_make_elem_num(int num) {
+dlist_elem_t dlist_make_elem_num(long num) {
 
     dlist_elem_t elem;
     elem.num = num;
@@ -205,12 +205,12 @@ void dlist_print_num(dlist_t *list) {
 
     while(dlist_next(iter) != NULL) {
 
-        printf("%d ", iter->elem.num);
+        printf("%ld ", iter->elem.num);
 
         iter = dlist_next(iter);
     }
 
-    printf("%d\n", iter->elem.num);
+    printf("%ld\n", iter->elem.num);
 }
 
 // Destroys all elements on the list.

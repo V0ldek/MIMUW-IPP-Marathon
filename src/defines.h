@@ -27,8 +27,14 @@
 // Initial size of the input buffer.
 #define INITIAL_BUFFER_SIZE 32
 
-// Maximal expected number of nodes.
-#define MAX_USERS 65536
+// Maximal userID.
+#define MAX_USER 65535
+
+// Maximal movieRating.
+#define MAX_MOVIE 2147483647
+
+// Maximal marathon length.
+#define MAX_MARATHON 2147483647
 
 // Macros asserting that the passed pointer is or is not NULL.
 #ifndef NDEBUG

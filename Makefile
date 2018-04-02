@@ -1,3 +1,11 @@
+# C Makefile for the Marathon assignment
+# Use with DEBUG=0/1 for release/debug versions
+#
+# Author: Mateusz Gienieczko
+# Copyright (C) 2018
+
+# Release/debug
+DEBUG?=0
 
 # Executable name
 PROG=main
@@ -9,13 +17,12 @@ CC=gcc
 CFLAGS=-Wall -Wextra -g -O2 -std=c11
 
 # Linker flags
-LDFLAGS=-Wall -Wextra
+LDFLAGS=
 
 # Valgrind flags
 VALGRINDFLAGS=--leak-check=full --show-leak-kinds=all
 
-# Release/debug
-DEBUG ?= 0
+# If not debug version, add appropriate flag
 ifeq ($(DEBUG), 0)
 	CFLAGS+=-DNDEBUG
 endif
@@ -37,6 +44,7 @@ all: $(PROG)
 run: $(PROG)
 	valgrind $(VALGRINDFLAGS) ./$(PROG)
 
+# Link all objects into the executable
 $(PROG): $(OBJS)
 	$(CC) $^ $(LDFLAGS) -o $@
 	  

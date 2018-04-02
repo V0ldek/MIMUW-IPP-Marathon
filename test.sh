@@ -1,4 +1,14 @@
 #!/bin/bash
+# Runs the given executable on all files *.in in the given directory and 
+# compares stdout and stderr with correct outputs in *.out and *.err
+# Uses valgrind to catch memory leaks and reports them as errors with exitcode
+# $LEAKEXITCODE
+#
+# Arg1 -- Name of the executable to be tested
+# Arg2 -- Directory with tests and outputs
+#
+# Author: Mateusz Gienieczko
+# Copyright (C) 2018
 
 if [ $# != 2 ];
 then 
@@ -10,8 +20,9 @@ fi
 PROG=$1
 TESTDIR=$2
 
-VALGRINDFLAGS="--error-exitcode=15 --leak-check=full --show-leak-kinds=all \
---errors-for-leak-kinds=all -q"
+LEAKEXITCODE=42
+VALGRINDFLAGS="--error-exitcode=$LEAKEXITCODE --leak-check=full \
+--show-leak-kinds=all --errors-for-leak-kinds=all -q"
 
 CORRECT=0
 WRONG=0

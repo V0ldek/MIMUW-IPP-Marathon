@@ -29,35 +29,65 @@ void cleanup() {
     marathon_tree_cleanup();
 }
 
-bool process_add_user(int parentID, int userID) {
+bool is_in_user_range(long user) {
 
-    return parentID >= 0 && userID >= 0 && marathon_tree_add(parentID, userID);
+    return user >= 0 && user <= MAX_USER;
 }
 
-bool process_del_user(int userID) {
+bool is_in_movie_range(long movieRating) {
 
-    return userID > 0 && marathon_tree_remove(userID);
+    return movieRating >= 0 && movieRating <= MAX_MOVIE;
 }
 
-bool process_add_movie(int userID, int movieRating) {
+bool is_in_marathon_range(long k) {
 
-    return userID >= 0 && movieRating >= 0 &&
-           marathon_tree_add_movie(userID, movieRating);
+    return k >= 0 && k <= MAX_MARATHON;
 }
 
-bool process_del_movie(int userID, int movieRating) {
+bool process_add_user(long parentID, long userID) {
 
-    return userID >= 0 && movieRating >= 0 &&
-           marathon_tree_remove_movie(userID, movieRating);
-}
-
-bool process_marathon(int userID, int k) {
-
-    if(userID < 0 || k < 0) {
+    if(!is_in_user_range(parentID) || !is_in_user_range(userID)) {
         return false;
     }
 
-    dlist_t *marathonResult = marathon_tree_get_marathon_list(userID, k);
+    return marathon_tree_add((unsigned int) parentID, (unsigned int) userID);
+}
+
+bool process_del_user(long userID) {
+
+    if(userID == 0 || !is_in_user_range(userID)) {
+        return false;
+    }
+
+    return marathon_tree_remove((unsigned int) userID);
+}
+
+bool process_add_movie(long userID, long movieRating) {
+
+    if(!is_in_user_range(userID) || !is_in_movie_range(movieRating)) {
+        return false;
+    }
+
+    return marathon_tree_add_movie((unsigned int) userID, movieRating);
+}
+
+bool process_del_movie(long userID, long movieRating) {
+
+    if(!is_in_user_range(userID) || !is_in_movie_range(movieRating)) {
+        return false;
+    }
+
+    return marathon_tree_remove_movie((unsigned int) userID, movieRating);
+}
+
+bool process_marathon(long userID, long k) {
+
+    if(!is_in_user_range(userID) || !is_in_marathon_range(k)) {
+        return false;
+    }
+
+    dlist_t *marathonResult = marathon_tree_get_marathon_list(
+            (unsigned int) userID, k);
 
     if(marathonResult != NULL) {
         dlist_print_num(marathonResult);
@@ -124,14 +154,14 @@ void process_line() {
         return;
     }
 
-    int arg1 = -1, arg2 = -1;
+    long arg1 = -1, arg2 = -1;
 
     if(arg1str != NULL && *arg1str >= '0' && *arg1str <= '9') {
-        arg1 = (int) strtol(arg1str, NULL, 10);
+        arg1 = strtol(arg1str, NULL, 10);
     }
 
     if(arg2str != NULL && *arg2str >= '0' && *arg2str <= '9') {
-        arg2 = (int) strtol(arg2str, NULL, 10);
+        arg2 = strtol(arg2str, NULL, 10);
     }
 
     if(errno != 0) {

@@ -15,7 +15,7 @@
 typedef union dlist_elem_t {
 
     void *ptr;
-    int num;
+    long num;
 
 } dlist_elem_t;
 
@@ -49,7 +49,7 @@ dnode_t *dlist_make_node(dnode_t *prev, dlist_elem_t elem, dnode_t *next);
 dlist_elem_t dlist_make_elem_ptr(void *ptr);
 
 // Makes a new dlist_elem_t object with passed integer as value num.
-dlist_elem_t dlist_make_elem_num(int num);
+dlist_elem_t dlist_make_elem_num(long num);
 
 // Returns the actual first element of the list (not dummy).
 dnode_t *dlist_get_front(dlist_t *list);
